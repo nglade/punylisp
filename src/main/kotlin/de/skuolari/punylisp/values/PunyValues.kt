@@ -20,6 +20,8 @@ class PunyList(values: List<PunyValue>) : ArrayList<PunyValue>(values), PunyValu
 
 val empty = PunyList()
 
+fun punyList(vararg content: PunyValue) = PunyList().apply { addAll(content) }
+
 class Lambda(val b: (List<PunyValue>) -> PunyValue) : PunyValue {
     override fun format(readably: Boolean) = ""
 
@@ -43,6 +45,8 @@ fun <V, W, R> ((V, W) -> R).makeLambda(): Lambda = Lambda(this.let {
 data class Symbol(val s: String) : PunyValue {
     override fun format(readably: Boolean) = s
 }
+
+fun String.makeSymbol() = Symbol(this)
 
 open class Wrapper<T>(val value: T) : PunyValue {
     override fun format(readably: Boolean): String = if (this.value is String) {

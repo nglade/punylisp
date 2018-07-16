@@ -4,6 +4,26 @@ import de.skuolari.punylisp.values.*
 import java.util.regex.Pattern
 
 class Reader(val input: String) {
+    enum class Prefix(val prefix: String, val expanded: String = "") {
+        PAREN("("), QUOTE("'", "quote"), BACK_TICK("`", "quasiquote"),TILDE_AT("~@", "splice-unquote"),  TILDE("~", "unquote"), OTHER("");
+
+        fun action(r: Reader) =
+                when (this) {
+                    Reader.Prefix.QUOTE,
+                    Reader.Prefix.BACK_TICK,
+                    Reader.Prefix.TILDE_AT,
+                    Reader.Prefix.TILDE -> {
+                        r.next()
+                        punyList(Symbol(expanded), readForm(r))
+                    }
+                    Reader.Prefix.OTHER -> readAtom(r)
+                    else -> {
+                        r.next()
+                        readList(r)
+                    }
+                }
+    }
+
 
     companion object {
         const val delimiter = "[\\s,]*"
@@ -12,19 +32,15 @@ class Reader(val input: String) {
         const val stringLiteral = "\\\"(.|[^\\\\]\\\")*\""
         const val comments = ";.*"
         const val symb = """[^\s\[\]{}()'\"`,;]*"""
+
         val pattern = Pattern.compile("$delimiter($tat|$ssc|$stringLiteral|$comments|$symb)")
 
         fun readForm(r: Reader): PunyValue {
             val p = r.peek()
-            return when {
-                p == null -> Nil
-                p.first() == '(' -> {
-                    r.next()
-                    readList(r)
-                }
-                else -> readAtom(r)
-            }
+            return if (p == null) Nil
+            else Prefix.values().first { p.startsWith(it.prefix) }.action(r)
         }
+
 
         /**
          * Reads in any of the following:
