@@ -21,9 +21,9 @@ class PunyList(values: List<PunyValue>) : ArrayList<PunyValue>(values), PunyValu
 val empty = PunyList()
 
 fun punyList(vararg content: PunyValue) = PunyList().apply { addAll(content) }
-
+fun <T:Any> punyList(vararg content:T) = PunyList().apply { addAll(content.map { it.wrap() }) }
 class Lambda(val b: (List<PunyValue>) -> PunyValue) : PunyValue {
-    override fun format(readably: Boolean) = ""
+    override fun format(readably: Boolean) = "<lambda>"
 
     operator fun invoke(l: List<PunyValue>) = b(l)
 }
@@ -77,7 +77,7 @@ open class Wrapper<T>(val value: T) : PunyValue {
  * Convert any object to a wrapped value.
  */
 fun <A> A.wrap(): Wrapper<A> = Wrapper(this)
-
+fun <A> PunyValue.unwrap() = (this as Wrapper<A>).value
 open class PunyException(message: String = "", inner: Exception? = null) : Exception(message, inner), PunyValue {
     override fun format(readably: Boolean) = message!!
 

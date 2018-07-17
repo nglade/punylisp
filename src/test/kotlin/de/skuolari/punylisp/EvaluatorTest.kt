@@ -1,12 +1,8 @@
 package de.skuolari.punylisp
 
-import de.skuolari.punylisp.values.PunyInt
-import de.skuolari.punylisp.values.PunyValue
-import de.skuolari.punylisp.values.Symbol
-import de.skuolari.punylisp.values.Wrapper
+import de.skuolari.punylisp.values.*
 import org.junit.Assert.*
 import org.junit.Test
-import kotlin.math.exp
 
 
 class EvaluatorTest {
@@ -14,14 +10,13 @@ class EvaluatorTest {
     @Test
     fun invoke() {
         val env = defaultEnvironment()
-        val expectedSize = env.size +1
+        val expectedSize = env.size + 1
         re("(def! answer 42)", env)
         val value = env.get(Symbol("answer"))
         assertTrue(value is Wrapper<*> && value.value is Int)
         @Suppress("UNCHECKED_CAST")
         assertEquals(42, (value as PunyInt).value)
         env.assertShape(expectedSize, null)
-
     }
 
     @Test
@@ -33,25 +28,37 @@ class EvaluatorTest {
         assertTrue(result is Wrapper<*> && result.value is Int)
         @Suppress("UNCHECKED_CAST")
         assertEquals(42, (result as PunyInt).value)
-        env.assertShape(expectedSize,null)
+        env.assertShape(expectedSize, null)
+    }
+
+    @Test
+    fun testDo() {
+        val env = defaultEnvironment()
+        re("(do (def! a 0) (def! x 1) (def! y 2) (def! z 3) (def! a 42))", env)
+        assertEquals(1.wrap(), env.get("x"))
+        assertEquals(2.wrap(), env.get("y"))
+        assertEquals(3.wrap(), env.get("z"))
+        assertEquals(42.wrap(), env.get("a"))
+    }
+
+    @Test
+    fun testIf() {
+        val env = defaultEnvironment()
+        val values = mapOf(
+                "x" to 42.wrap(), "y" to 42.wrap(), "z" to 3.wrap())
+        values.forEach {
+            env.set(it.key, it.value)
+            assertTrue(re("(if (= ${it.key} ${it.value.unwrap<Int>()}) #t #f)", env).unwrap())
+            assertTrue(re("(if (< ${it.key} ${it.value.unwrap<Int>()}) #f #t)", env).unwrap())
+            assertTrue(re("(if (> ${it.key} ${it.value.unwrap<Int>()}) #f #t)", env).unwrap())
+            assertTrue(re("(if (= ${it.key} 0) #f #t)", env).unwrap())
+        }
     }
 
     @Test
     fun evalList() {
-        TODO("assert that a list is returned that contains the value of each expression in the argument list")
-    }
-
-    @Test
-    fun eval() {
-        val e = Evaluator
-        for (i in -10..10) {
-            val p = PunyInt(i)
-            val v = e(p, defaultEnvironment())
-            assertEquals(p, v)
-        }
-        val set = Symbol("")
-        TODO("assert that the evaluator evaluates symbols to the value inside the environment, calls eval() for each list element of a list, and returns other expressions unchanged.")
-
+        val result = re("(list 42 \"test\" #t #f -1.0)", defaultEnvironment())
+        assertEquals(punyList(42, "test", true, false, -1.0), result)
     }
 
     @Test
@@ -71,8 +78,8 @@ class EvaluatorTest {
         }
     }
 
+    fun Environment.get(s: String) = get(Symbol(s))
     fun MapEnvironment.isEmpty() = this.size == 0 && outer == null
-
     fun MapEnvironment.assertShape(expectedSize: Int, expectedOuter: Environment?) {
         assertEquals(expectedSize, size)
         assertEquals(expectedOuter, outer)
