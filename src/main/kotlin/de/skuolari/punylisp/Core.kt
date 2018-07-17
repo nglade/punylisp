@@ -46,7 +46,11 @@ val core = mapOf<String, PunyValue>(
         "quote" to Nil,
         "quasiquote" to Nil,
         "unquote" to Nil,
-        "splice-unquote" to Nil
+        "splice-unquote" to Nil,
+        "prn" to Lambda() {
+            de.skuolari.punylisp.print(it[0])
+            Nil
+        }
 )
 
 fun numSwitch(i: (Int, Int) -> PunyValue, d: (kotlin.Double, kotlin.Double) -> PunyValue) = Lambda {
