@@ -5,7 +5,7 @@ import de.skuolari.punylisp.values.PunyValue
 import de.skuolari.punylisp.values.Symbol
 import de.skuolari.punylisp.values.empty
 
-class MapEnvironment(outer: Environment?=null, binds: PunyList = empty, expressions: List<PunyValue> = empty) : Environment(outer, binds, expressions) {
+class MapEnvironment(outer: Environment?=null, binds: List<PunyValue> = empty, expressions: List<PunyValue> = empty) : Environment(outer, binds, expressions) {
     private val data  by lazy { HashMap<Symbol, PunyValue>()}
 
     override fun set(key: Symbol, value: PunyValue) {

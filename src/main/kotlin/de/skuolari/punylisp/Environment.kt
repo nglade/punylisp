@@ -2,7 +2,7 @@ package de.skuolari.punylisp
 
 import de.skuolari.punylisp.values.*
 
-abstract class Environment(open val outer: Environment? = null, binds: PunyList = empty, expressions: List<PunyValue> = emptyList()) {
+abstract class Environment(open val outer: Environment? = null, binds: List<PunyValue> = empty, expressions: List<PunyValue> = emptyList()) {
 
     abstract fun set(key: Symbol, value: PunyValue)
 
